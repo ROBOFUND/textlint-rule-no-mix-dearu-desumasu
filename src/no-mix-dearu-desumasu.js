@@ -46,11 +46,15 @@ module.exports = function noMixedDearuDesumasu(context, options = defaultOptions
         },
         // 箇条書き
         [Syntax.ListItem](node) {
+            console.log("listitem:" + node);
             const text = getSource(node);
             listChecker.check(node, text);
         },
         // 本文
         [Syntax.Paragraph](node) {
+            console.log("enter: para:" + node);
+            console.log("\n\n\n\n\n");
+
             const ignoredNodeTypes = [Syntax.Link, Syntax.Code, Syntax.Image, Syntax.BlockQuote, Syntax.Emphasis];
             // 無視リストのTypeが親にある場合は無視する
             if (helper.isChildNode(node, ignoredNodeTypes)) {
@@ -64,6 +68,23 @@ module.exports = function noMixedDearuDesumasu(context, options = defaultOptions
             ignoreManager.ignoreChildrenByTypes(node, ignoredNodeTypes);
             // check
             const text = getSource(node);
+            console.log("!!!!!!!!!!!!!!!!!!!!!!" + text);
+            bodyChecker.check(node, text);
+        },
+        [Syntax.Str](node) {
+            console.log("enter: str:" + node);
+            console.log("\n\n\n\n\n");
+
+            const ignoredNodeTypes = [Syntax.Link, Syntax.Code, Syntax.Image, Syntax.BlockQuote, Syntax.Emphasis];
+            // 見出しと箇条書き、パラグラフは別途チェックするので Header > Str などは無視する
+            if (helper.isChildNode(node, [Syntax.Header, Syntax.ListItem, Syntax.Paragraph])) {
+                return;
+            }
+            // childrenに無視するtypeがいた場合は無視リストに加える
+            ignoreManager.ignoreChildrenByTypes(node, ignoredNodeTypes);
+            // check
+            const text = getSource(node);
+            console.log("!!!!!!!!!!!!!!!!!!!!!!" + text);
             bodyChecker.check(node, text);
         },
         [Syntax.Document + ":exit"]() {
